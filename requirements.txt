@@ -1,0 +1,4 @@
+# Python 3.10+; standard library only for the current demo.
+pandas>=2.0
+openpyxl>=3.1
+maxapi-sdk>=0.13.0
