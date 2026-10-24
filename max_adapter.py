@@ -80,7 +80,11 @@ class MaxAPI:
         if marker is not None:
             params["marker"] = marker
 
-        return self.request("GET", "/updates", params=params)
+        return self.request(
+            "GET",
+            "/updates",
+            params=params,
+        )
 
     def send_message(self, user_id, text):
         return self.request(
@@ -92,14 +96,22 @@ class MaxAPI:
 
 
 def run():
+    # Сначала загружаем настройки, затем импортируем модули БД.
     token, base_url = load_settings()
+
+    from database import init_db
+    from max_handlers import handle_message
+
+    init_db()
+
     api = MaxAPI(token, base_url)
 
     marker = None
     seen_messages = set()
 
     print("Адаптер MAX запущен.")
-    print("Открой личный чат с Корсиком и отправь текст «Привет».")
+    print("Онбординг подключён.")
+    print("Отправь боту /start.")
     print("Для остановки: Ctrl+C")
 
     while True:
@@ -115,7 +127,6 @@ def run():
                 recipient = message.get("recipient") or {}
                 body = message.get("body") or {}
 
-                # На первом этапе отвечаем только в личном диалоге.
                 if recipient.get("chat_type") != "dialog":
                     continue
 
@@ -126,26 +137,35 @@ def run():
                 text = body.get("text")
                 message_id = body.get("mid")
 
-                if user_id is None or not text:
+                if user_id is None or not isinstance(text, str):
+                    continue
+
+                if not text.strip():
                     continue
 
                 if message_id and message_id in seen_messages:
                     continue
 
-                print("Получено текстовое сообщение из личного чата.")
+                print("Получено сообщение из личного чата.")
 
-                # Небольшая задержка между ответами.
-                time.sleep(0.6)
+                try:
+                    answer = handle_message(user_id, text)
 
-                api.send_message(
-                    user_id,
-                    "Привет! Я Корсик. Подключение работает ✅\n"
-                    "Сейчас это проверка канала MAX, "
-                    "онбординг подключим следующим шагом.",
-                )
+                except ValueError as error:
+                    print("Ошибка обработки онбординга:", error)
+                    answer = (
+                        "Не удалось обработать ответ.\n"
+                        "Отправь /continue, чтобы увидеть текущий шаг."
+                    )
 
+                # Защита от повторной обработки в пределах этого запуска.
+                # Полноценную обработку повторных событий добавим отдельно.
                 if message_id:
                     seen_messages.add(message_id)
+
+                time.sleep(0.6)
+
+                api.send_message(user_id, answer)
 
             marker = response.get("marker", marker)
 
@@ -154,8 +174,8 @@ def run():
 
             if error.code in (401, 403, 405, 409):
                 print(
-                    "Остановлено. Проверь токен, разрешения "
-                    "и отсутствие активного Webhook."
+                    "Работа остановлена. Нужно проверить токен, "
+                    "разрешения или настройки получения событий."
                 )
                 return
 
@@ -173,7 +193,9 @@ def run():
 if __name__ == "__main__":
     try:
         run()
+
     except KeyboardInterrupt:
         print("\nАдаптер остановлен.")
+
     except RuntimeError as error:
-        print(error)
+        print("Ошибка запуска:", error)
