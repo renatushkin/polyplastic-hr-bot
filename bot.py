@@ -21,6 +21,3 @@ def handle(employee_id,action,text):
     if action=="ticket":
         return {**state(employee_id),"ticket_id":create_ticket(employee_id,text)}
     raise ValueError("Неизвестное действие")
-
-# MAX adapter is intentionally not implemented. Connect actual authenticated
-# MAX updates to handle(), and send its results through the official channel API.
