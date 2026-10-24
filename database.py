@@ -16,6 +16,10 @@ def init_db():
         CREATE TABLE IF NOT EXISTS answers(id INTEGER PRIMARY KEY, employee_id TEXT, step_id TEXT, answer TEXT, UNIQUE(employee_id,step_id));
         CREATE TABLE IF NOT EXISTS tickets(id INTEGER PRIMARY KEY, employee_id TEXT REFERENCES employees(id), hr_id TEXT, question TEXT, status TEXT DEFAULT 'open', answer TEXT);
         """)
+                                                                                   
+        schema_path = Path(__file__).with_name("schema.sql")
+        if schema_path.exists():
+            c.executescript(schema_path.read_text(encoding="utf-8"))
         c.executemany("INSERT OR IGNORE INTO employees(id,name,tags,hr_id) VALUES(?,?,?,?)", [
             ("demo-gtp", "Тестовый сотрудник GTP", json.dumps(["GTP"]), "hr-demo"),
             ("demo-office", "Тестовый сотрудник офиса", json.dumps(["GrPP"]), "hr-demo")])

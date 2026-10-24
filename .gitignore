@@ -1,9 +1,65 @@
+# настройки и секреты
 .env
+.env.*
+!.env.example
+
+# python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# временные файлы
+backups/
+runtime/
+*.backup
+*.log
+*.zip
+
+# локальные базы данных
+*.db
+*.sqlite
+*.sqlite3
+
+# персональные данные сотрудников
+activation_codes.csv
+data/*.csv
+data/*.db
+data/*.sqlite3
+
+/data/knowledge_docs/
+/data/policy_docs/
+
+# KORSIK_CLEANUP_PROTECTION_V1
+.env
+.env.*
+!.env.example
+
 .venv/
 __pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
 runtime/
-data/private/
-models/
-indexes/
-logs/
+backups/
+archive/
+data/registry/
+activation_codes.csv
+
+*.sqlite
+*.sqlite3
 *.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+docs/
+data/ocr_cache/
+*.pdf
+*.pptx
+*.xlsx
+*.xls
